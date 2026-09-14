@@ -82,7 +82,7 @@ export default function Home() {
           <div className="trust-row"><div className="avatars" aria-hidden="true"><span>AM</span><span>TS</span><span>RK</span></div><p><strong>8,400+</strong> smiles treated<br/><span>4.9 average patient rating</span></p></div>
         </div>
         <div className="hero-stage">
-          <img className="hero-tooth" src="/hero-origami-tooth.png" alt="Faceted white ceramic tooth on a chrome pedestal with a silver orbit"/>
+          <img className="hero-tooth" src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/hero-origami-tooth.png`} alt="Faceted white ceramic tooth on a chrome pedestal with a silver orbit"/>
           <div className="satisfaction-card"><strong>98%</strong><span>Patient<br/>satisfaction</span></div>
           <a className="round-cta" href="#contact" aria-label="Book your visit"><span>BOOK YOUR VISIT · BOOK YOUR VISIT · </span><ArrowUpRight/></a>
         </div>
