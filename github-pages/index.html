@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cusp Dental Studio | Modern Dentistry in Bengaluru</title>
+    <meta name="description" content="A fictional premium dental studio demo for preventive, restorative and cosmetic care." />
+    <link rel="icon" href="/favicon.svg" />
+    <script>
+      try {
+        const t = localStorage.getItem("cusp-theme");
+        document.documentElement.dataset.theme =
+          t || (matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light");
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

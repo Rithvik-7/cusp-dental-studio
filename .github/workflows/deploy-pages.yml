@@ -26,20 +26,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build static site
-        run: npm run build
+        run: npm run build:pages
         env:
           NEXT_PUBLIC_BASE_PATH: /cusp-dental-studio
       - name: Prepare Pages artifact
         run: |
-          touch dist/.nojekyll
-          if [ ! -f dist/index.html ]; then
-            echo "Expected dist/index.html after vinext static export"
-            ls -la dist || true
-            exit 1
-          fi
+          touch dist-pages/.nojekyll
+          test -f dist-pages/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: dist-pages
 
   deploy:
     needs: build
