@@ -1,133 +1,53 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock3, Expand, Menu, Moon, Sun } from "lucide-react";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Booking } from "@/components/booking";
+import { ToothExplorer } from "@/components/tooth-explorer";
+import { asset, clinic, faqs, money, reviews, treatments, type Treatment } from "@/lib/clinic";
 
-import {
-  ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, Check, Clock3,
-  MapPin, Menu, MessageCircle, Moon, Phone, Star, Sun, X,
-} from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
-
-const services = [
-  { n:"01", title:"Teeth whitening", copy:"Professional-grade whitening with a naturally bright finish.", price:"from ₹8,900", featured:true },
-  { n:"02", title:"Clear aligners", copy:"A straighter smile, planned digitally and discreetly.", price:"from ₹89,000" },
-  { n:"03", title:"Dental implants", copy:"Permanent, natural-looking tooth replacement.", price:"from ₹35,000" },
-  { n:"04", title:"Root canal therapy", copy:"Gentle treatment with focused same-day relief.", price:"from ₹6,500" },
-  { n:"05", title:"Cosmetic veneers", copy:"Hand-shaded porcelain designed around your features.", price:"from ₹18,000" },
-  { n:"06", title:"Pediatric dentistry", copy:"Patient, judgment-free care for growing smiles.", price:"from ₹900" },
-];
-
-const plans = [
-  { name:"Essential care", price:"₹1,499", unit:"/ month", items:["Two dental exams a year","Professional cleaning","Digital X-rays"], tone:"plain" },
-  { name:"Complete care", price:"₹2,499", unit:"/ month", items:["Everything in Essential","Annual whitening credit","Priority appointments"], tone:"lime", tag:"Most chosen" },
-  { name:"Smile makeover", price:"Custom", unit:"plan", items:["Full cosmetic consultation","Digital smile preview","Concierge scheduling"], tone:"blue" },
-];
-
-const reviews = [
-  { quote:"The first dental appointment I didn't spend the whole week dreading.", name:"Amara W.", treatment:"Restorative care" },
-  { quote:"Every step of my aligner plan was clear, calm and beautifully handled.", name:"Tobias L.", treatment:"Clear aligners" },
-  { quote:"It felt considered from the welcome desk to the final result.", name:"Reina O.", treatment:"Smile design" },
-];
-
-function BeforeAfter({ label, accent }:{ label:string; accent:string }) {
-  const [value,setValue] = useState(53);
-  return (
-    <article className="result-card">
-      <div className="result-visual" style={{"--reveal":`${value}%`,"--result-accent":accent} as React.CSSProperties}>
-        <div className="result-before"><span>Before</span><b>{label}</b></div>
-        <div className="result-after"><span>After</span><b>{label}</b></div>
-        <div className="slider-line" style={{left:`${value}%`}}><i>↔</i></div>
-        <input aria-label={`Compare before and after ${label}`} type="range" min="8" max="92" value={value} onChange={(e)=>setValue(Number(e.target.value))} />
-      </div>
-      <p>Demo visualization <span>Drag to compare</span></p>
-    </article>
-  );
+function Brand({ footer = false }: { footer?: boolean }) {
+  return <a className={`brand ${footer ? "brand-large" : ""}`} href="#top" aria-label="Cusp Dental Studio home"><svg className="brand-symbol" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M7 10C7 5 17 5 24 13C31 5 41 5 41 10V22C41 30 34 35 30 41L24 30L18 41C14 35 7 30 7 22V10Z" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"/><path d="M16 17L24 23L32 17" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg><span>cusp<span className="brand-dot">.</span><small>dental studio</small></span></a>;
 }
-
+const nav = [["Treatments", "services"], ["Smile lab", "results"], ["The studio", "about"], ["Your visit", "contact"]];
 export default function Home() {
-  const [dark,setDark] = useState(false);
-  const [menuOpen,setMenuOpen] = useState(false);
-  const [progress,setProgress] = useState(0);
-  const [review,setReview] = useState(0);
-  const [sent,setSent] = useState(false);
+  const [theme, setTheme] = useState("light"); const [menuOpen, setMenuOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false); const [selected, setSelected] = useState("unsure");
+  const [detail, setDetail] = useState<Treatment | null>(null); const [category, setCategory] = useState("All care");
+  const [review, setReview] = useState(0); const [principle, setPrinciple] = useState(0);
+  const [faq, setFaq] = useState<number | null>(0); const [privacy, setPrivacy] = useState(false);
+  const swipeX = useRef<number | null>(null); const heroRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { let initial = "light"; try { initial = localStorage.getItem("cusp-theme") || "light"; } catch {} setTheme(initial); document.documentElement.dataset.theme = initial; }, []);
+  const toggleTheme = () => { const next = theme === "dark" ? "light" : "dark"; setTheme(next); document.documentElement.dataset.theme = next; try { localStorage.setItem("cusp-theme", next); } catch {} };
+  const book = (id = "unsure") => { setSelected(id); setMenuOpen(false); setDetail(null); setBookingOpen(true); };
+  const stepReview = (amount: number) => setReview(value => (value + amount + reviews.length) % reviews.length);
+  const principles = [
+    { label: "Understand", text: "See what your dentist sees. Start with clear explanations and room for your questions." },
+    { label: "Explore", text: "Compare the options, talk through the costs and choose your next step together." },
+    { label: "Feel at ease", text: "A thoughtful space, an unhurried conversation and care at a pace you understand." },
+  ];
+  return <><div id="top"/><a className="skip-link" href="#main">Skip to content</a>
+    <header className="site-header"><div className="nav-inner"><Brand/><nav className="desktop-nav" aria-label="Primary navigation">{nav.map(([name, id]) => <a key={id} href={`#${id}`}>{name}</a>)}</nav><div className="nav-actions"><button className="icon-btn theme-toggle" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>{theme === "dark" ? <Sun size={19}/> : <Moon size={19}/>}</button><button className="btn btn-dark nav-book" onClick={() => book()}>Book a visit <ArrowUpRight size={16}/></button><Dialog open={menuOpen} onOpenChange={setMenuOpen}><DialogTrigger asChild><button className="icon-btn menu-toggle" aria-label="Open navigation"><Menu/></button></DialogTrigger><DialogContent className="cusp-dialog menu-dialog"><DialogTitle>Explore Cusp</DialogTitle><DialogDescription className="sr-only">Main navigation</DialogDescription><nav>{nav.map(([name, id]) => <DialogClose asChild key={id}><a href={`#${id}`}>{name}<ArrowUpRight/></a></DialogClose>)}</nav><button className="btn btn-primary" onClick={() => book()}>Book a visit <ArrowRight size={17}/></button></DialogContent></Dialog></div></div></header>
+    <main id="main"><section className="hero shell"><div className="hero-copy"><p className="section-label"><span className="label-line"/> A new perspective on dental care</p><h1>Your smile.<br/>The next<br/><span>chapter.</span></h1><p className="hero-description">Modern dentistry. Clear choices. A little more confidence in every visit.</p><div className="hero-actions"><button className="btn btn-primary btn-hero" onClick={() => book()}>Find your care <span className="button-icon"><ArrowUpRight size={19}/></span></button><a className="text-link" href="#results">Explore the smile lab <ArrowDown size={17}/></a></div><div className="hero-location"><span>Bengaluru, India</span><span>Preventive · Cosmetic · Restorative</span></div></div>
+      <div className="hero-art" ref={heroRef} onPointerMove={e => { if (e.pointerType !== "mouse" || matchMedia("(prefers-reduced-motion: reduce)").matches) return; const r = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty("--tilt-x", `${(e.clientY - r.top - r.height / 2) / r.height * -4}deg`); e.currentTarget.style.setProperty("--tilt-y", `${(e.clientX - r.left - r.width / 2) / r.width * 4}deg`); }} onPointerLeave={() => { heroRef.current?.style.setProperty("--tilt-x", "0deg"); heroRef.current?.style.setProperty("--tilt-y", "0deg"); }}><img src={asset("hero-tooth.png")} alt="Sculptural white molar floating above a cobalt pedestal" className="hero-image" fetchPriority="high" width="1122" height="1402"/><div className="art-caption"><span className="crosshair">+</span> The future looks bright.</div><div className="hero-art-bottom"><div><span>Designed around</span><strong>you.</strong></div><a href="#results" className="art-explore" aria-label="Explore the interactive tooth"><ArrowDown size={23}/></a></div></div>
+    </section><div className="principle-bar shell"><span className="principle-title">Better care begins<br/>with a conversation.</span><div className="principle-switch" role="group" aria-label="Our approach">{principles.map((item, i) => <button key={item.label} className={principle === i ? "active" : ""} aria-pressed={principle === i} onClick={() => setPrinciple(i)}><span>0{i + 1}</span>{item.label}</button>)}</div><p aria-live="polite">{principles[principle].text}</p></div>
 
-  useEffect(()=>{
-    setDark(document.documentElement.dataset.theme === "dark");
-    const onScroll=()=>{const max=document.documentElement.scrollHeight-window.innerHeight;setProgress(max>0?(window.scrollY/max)*100:0)};
-    onScroll();window.addEventListener("scroll",onScroll,{passive:true});
-    return()=>window.removeEventListener("scroll",onScroll);
-  },[]);
-  useEffect(()=>{document.documentElement.dataset.theme=dark?"dark":"light";localStorage.setItem("cusp-theme",dark?"dark":"light")},[dark]);
-  const nav=["About","Services","Results","Pricing","Reviews"];
-  const submit=(e:FormEvent)=>{e.preventDefault();setSent(true)};
+    <section className="section shell treatments-section" id="services"><div className="section-heading"><div><p className="section-label">01 / Find your care</p><h2>A little care.<br/><span>A whole lot of you.</span></h2></div><p>From your regular check-up to the change you’ve been thinking about. Let’s find a starting point.</p></div><div className="filter-row" role="group" aria-label="Filter treatments">{["All care", "Maintain", "Brighten", "Align", "Restore"].map(c => <button className={category === c ? "active" : ""} aria-pressed={category === c} onClick={() => setCategory(c)} key={c}>{c}</button>)}</div><div className="treatment-list">{treatments.filter(t => category === "All care" || t.category === category).map(t => <button className="treatment-row" key={t.id} onClick={() => setDetail(t)}><span className="treatment-index">0{treatments.indexOf(t) + 1}</span><span className="treatment-name">{t.title}<small>{t.short}</small></span><span className="treatment-price">From {money(t.price)}<small>{t.unit}</small></span><span className="row-arrow"><ArrowUpRight size={22}/></span></button>)}</div><p className="fine-print">Sample starting prices for this concept practice. An examination determines the final treatment and estimate.</p></section>
 
-  return (
-    <main>
-      <header className="site-nav">
-        <div className="progress" style={{width:`${progress}%`}} />
-        <a className="brand" href="#top" aria-label="Cusp Dental Studio home"><span className="brand-mark">C</span><span>Cusp <em>Dental Studio</em></span></a>
-        <nav className="desktop-nav" aria-label="Primary navigation">{nav.map(i=><a key={i} href={`#${i.toLowerCase()}`}>{i}</a>)}</nav>
-        <div className="nav-actions">
-          <button className="icon-button" onClick={()=>setDark(!dark)} aria-label="Toggle color theme">{dark?<Sun size={17}/>:<Moon size={17}/>}</button>
-          <a className="button button-dark desktop-cta" href="#contact">Book a visit <ArrowUpRight size={16}/></a>
-          <button className="icon-button menu-button" onClick={()=>setMenuOpen(!menuOpen)} aria-label="Open navigation menu">{menuOpen?<X/>:<Menu/>}</button>
-        </div>
-        {menuOpen&&<nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(i=><a key={i} onClick={()=>setMenuOpen(false)} href={`#${i.toLowerCase()}`}>{i}</a>)}<a onClick={()=>setMenuOpen(false)} href="#contact">Book a visit</a></nav>}
-      </header>
+    <section className="lab-section" id="results"><div className="shell"><div className="section-heading"><div><p className="section-label">02 / The smile lab</p><h2>Curiosity looks<br/><span>good on you.</span></h2></div><div><p>Get hands-on with the details. Slide, explore and understand the tooth beneath your smile.</p><Dialog><DialogTrigger asChild><button className="text-button"><Expand size={17}/> Open full explorer</button></DialogTrigger><DialogContent className="cusp-dialog explorer-dialog"><DialogTitle className="sr-only">Interactive tooth explorer</DialogTitle><DialogDescription className="sr-only">Drag the divider or use arrow keys to reveal the illustrated tooth interior.</DialogDescription><ToothExplorer expanded/></DialogContent></Dialog></div></div><ToothExplorer/></div></section>
 
-      <section className="hero" id="top">
-        <div className="hero-copy">
-          <p className="eyebrow">Modern dentistry · Bengaluru</p>
-          <h1>Your smile,<br/><em>rebuilt</em> with<br/>intention.</h1>
-          <p className="hero-intro">Precision dentistry in a calm, design-led practice—because excellent care should feel as considered as the result.</p>
-          <div className="hero-actions"><a className="button button-lime" href="#contact">Book a consultation <ArrowUpRight size={18}/></a><a className="text-link" href="#results">See our work <ArrowDownRight size={17}/></a></div>
-          <div className="trust-row"><div className="avatars" aria-hidden="true"><span>AM</span><span>TS</span><span>RK</span></div><p><strong>8,400+</strong> smiles treated<br/><span>4.9 average patient rating</span></p></div>
-        </div>
-        <div className="hero-stage">
-          <img className="hero-tooth" src={`${import.meta.env.BASE_URL || "/"}hero-origami-tooth.png`} alt="Faceted white ceramic tooth on a chrome pedestal with a silver orbit"/>
-          <div className="satisfaction-card"><strong>98%</strong><span>Patient<br/>satisfaction</span></div>
-          <a className="round-cta" href="#contact" aria-label="Book your visit"><span>BOOK YOUR VISIT · BOOK YOUR VISIT · </span><ArrowUpRight/></a>
-        </div>
-      </section>
+    <section className="section shell studio-section" id="about"><div className="studio-image"><img src={asset("clinic-studio.png")} alt="Concept dental studio with a pale blue chair, oak cabinetry and natural light" loading="lazy" width="1536" height="1024"/><span>The Cusp studio / Space concept</span></div><div className="studio-copy"><p className="section-label">03 / Room to feel at ease</p><h2>A softer landing.<br/><span>A clearer plan.</span></h2><p>Your questions deserve time. Your choices deserve an explanation. That’s the experience we’re designing at Cusp.</p><div className="studio-values"><div><span>01</span><p><strong>Start with a conversation.</strong>Tell us what’s on your mind before we talk about treatment.</p></div><div><span>02</span><p><strong>Make room for questions.</strong>Understand the options, costs and next steps.</p></div><div><span>03</span><p><strong>Move at your pace.</strong>A consultation is a starting point, not a commitment.</p></div></div><button className="text-link" onClick={() => book()}>Plan your first visit <ArrowUpRight size={17}/></button></div></section>
 
-      <div className="marquee" aria-label="Clinic highlights"><div>INVISALIGN CERTIFIED <i>✦</i> SAME-DAY EMERGENCY CARE <i>✦</i> 5-STAR RATED <i>✦</i> DIGITAL X-RAYS <i>✦</i> INSURANCE FRIENDLY <i>✦</i> INVISALIGN CERTIFIED <i>✦</i> SAME-DAY EMERGENCY CARE <i>✦</i></div></div>
+    <section className="pricing-section" id="pricing"><div className="shell"><div className="section-heading"><div><p className="section-label">04 / Clear from the start</p><h2>Your care.<br/><span>Your starting point.</span></h2></div><p>Explore three ways to begin. Detailed estimates follow a consultation, so you know what’s included.</p></div><div className="pricing-layout">{[{ title: "A fresh start", id: "checkup", price: "₹900", description: "A consultation to understand your dental health.", list: ["Your concerns, heard", "An initial examination", "A conversation about next steps"] }, { title: "A brighter outlook", id: "whitening", price: "₹8,900", description: "Explore professional whitening and suitability.", list: ["Shade and sensitivity discussion", "Whitening options explained", "A personalized estimate"] }, { title: "A bigger change", id: "aligners", price: "₹89,000", description: "Explore an orthodontic assessment for clear aligners.", list: ["Your alignment goals", "Assessment requirements", "A proposed plan and timeline"] }].map((p, i) => <article className={`price-card ${i === 1 ? "featured" : ""}`} key={p.id}><span className="price-number">0{i + 1}</span><h3>{p.title}</h3><p>{p.description}</p><div className="price-amount">{p.price}<span>sample starting price</span></div><ul>{p.list.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul><button className={`btn ${i === 1 ? "btn-white" : "btn-outline"}`} onClick={() => book(p.id)}>Explore {i === 0 ? "everyday care" : i === 1 ? "whitening" : "aligners"}<ArrowRight size={17}/></button></article>)}</div></div></section>
 
-      <section className="section services" id="services">
-        <div className="section-head"><p className="eyebrow">Care, considered</p><h2>Everything your smile needs.<br/><em>Nothing it doesn&apos;t.</em></h2><p>From preventive care to full smile restoration, every treatment begins with a clear plan and an honest conversation.</p></div>
-        <div className="service-grid">{services.map(s=><article key={s.n} className={`service-card ${s.featured?"featured":""}`}><div><span className="service-number">{s.n}</span><ArrowUpRight/></div><h3>{s.title}</h3><p>{s.copy}</p><strong>{s.price}</strong></article>)}</div>
-      </section>
+    <section className="section shell reviews-section" id="reviews"><div><p className="section-label">05 / The feeling matters</p><h2>Good care.<br/><span>In their words.</span></h2><p className="fine-print">Sample patient stories for this concept practice.</p></div><div className="review-panel" role="region" aria-roledescription="carousel" aria-label="Sample patient stories" tabIndex={0} onKeyDown={e => { if (["ArrowLeft", "ArrowRight"].includes(e.key)) { e.preventDefault(); stepReview(e.key === "ArrowLeft" ? -1 : 1); } }} onTouchStart={e => { swipeX.current = e.touches[0].clientX; }} onTouchEnd={e => { if (swipeX.current !== null) { const delta = e.changedTouches[0].clientX - swipeX.current; if (Math.abs(delta) > 45) stepReview(delta < 0 ? 1 : -1); } swipeX.current = null; }}><div aria-live="polite"><span className="review-category">{reviews[review].treatment}</span><blockquote>“{reviews[review].quote}”</blockquote><p className="review-name">{reviews[review].name}<span>Sample story</span></p></div><div className="review-controls"><span>{String(review + 1).padStart(2, "0")} <span>/ 03</span></span><div><button className="icon-btn" onClick={() => stepReview(-1)} aria-label="Previous patient story"><ArrowLeft size={19}/></button><button className="icon-btn" onClick={() => stepReview(1)} aria-label="Next patient story"><ArrowRight size={19}/></button></div></div></div></section>
 
-      <section className="about section" id="about">
-        <div className="stats"><article><strong>12<sup>+</sup></strong><span>Years of focused practice</span></article><article><strong>8.4<sup>k</sup></strong><span>Smiles treated</span></article><article><strong>98<sup>%</sup></strong><span>Patient satisfaction</span></article></div>
-        <div className="about-copy"><p className="eyebrow">Why Cusp</p><h2>Clinical precision.<br/><em>Human warmth.</em></h2><p>We designed Cusp around a simple belief: people make better care decisions when they feel heard. Your treatment plan is transparent, your questions are welcome, and your time is respected.</p><div className="doctors"><article><b>Dr. Maya Okonkwo</b><span>Lead dentist</span></article><article><b>Dr. Elias Bergström</b><span>Orthodontics</span></article><article><b>Dr. Priya Nandakumar</b><span>Pediatric care</span></article></div></div>
-      </section>
+    <section className="section shell questions-section"><div><p className="section-label">A few things you might be wondering</p><h2>Let’s clear<br/><span>things up.</span></h2></div><div className="faq-list">{faqs.map(([q, a], i) => <article key={q}><h3><button aria-expanded={faq === i} aria-controls={`faq-answer-${i}`} onClick={() => setFaq(faq === i ? null : i)}>{q}<span>{faq === i ? "−" : "+"}</span></button></h3><div id={`faq-answer-${i}`} hidden={faq !== i}><p>{a}</p></div></article>)}</div></section>
 
-      <section className="section results" id="results">
-        <div className="section-head horizontal"><div><p className="eyebrow">Results</p><h2>Subtle work.<br/><em>Visible confidence.</em></h2></div><p>Use the sliders to explore representative treatment outcomes. These are clearly marked demo visuals for this fictional practice.</p></div>
-        <div className="results-grid"><BeforeAfter label="Smile alignment" accent="#eaff55"/><BeforeAfter label="Whitening plan" accent="#ff9f7a"/></div>
-      </section>
-
-      <section className="section pricing" id="pricing">
-        <div className="section-head"><p className="eyebrow">Memberships</p><h2>Predictable care,<br/><em>without surprises.</em></h2></div>
-        <div className="pricing-grid">{plans.map(p=><article key={p.name} className={`plan ${p.tone}`}>{p.tag&&<span className="plan-tag">{p.tag}</span>}<h3>{p.name}</h3><p className="plan-price">{p.price}<small>{p.unit}</small></p><ul>{p.items.map(i=><li key={i}><Check size={16}/>{i}</li>)}</ul><a href="#contact">Choose this plan <ArrowUpRight size={16}/></a></article>)}</div>
-      </section>
-
-      <section className="reviews section" id="reviews">
-        <div className="review-visual"><span>“</span><div className="review-stars" aria-label="Five stars">{[1,2,3,4,5].map(n=><Star key={n} size={17} fill="currentColor"/>)}</div></div>
-        <div className="review-copy"><p className="eyebrow">Patient notes</p><blockquote>{reviews[review].quote}</blockquote><div className="review-meta"><p><strong>{reviews[review].name}</strong><span>{reviews[review].treatment}</span></p><div><button onClick={()=>setReview((review+reviews.length-1)%reviews.length)} aria-label="Previous review"><ArrowLeft/></button><button onClick={()=>setReview((review+1)%reviews.length)} aria-label="Next review"><ArrowRight/></button></div></div></div>
-      </section>
-
-      <section className="location section">
-        <div className="map-card"><div className="map-grid"/><div className="map-pin"><MapPin/></div><span>12 Harbour Lane<br/>Indiranagar, Bengaluru</span></div>
-        <div className="location-copy"><p className="eyebrow">Visit the studio</p><h2>Care that fits<br/><em>your week.</em></h2><div className="location-list"><p><Clock3/><span><b>Mon–Fri</b> 8:00–19:00<br/><b>Saturday</b> 9:00–14:00</span></p><p><Phone/><span>+91 00000 00000<br/>hello@cusp-demo.test</span></p></div><a className="text-link" href="#contact">Plan your visit <ArrowDownRight size={17}/></a></div>
-      </section>
-
-      <section className="contact section" id="contact">
-        <div><p className="eyebrow">Start a conversation</p><h2>Your next smile<br/>starts <em>here.</em></h2><p>This is a fictional portfolio demo. Replace the practice details before using it for a real clinic.</p></div>
-        {sent?<div className="success"><Check/><h3>Thanks—that&apos;s the demo flow.</h3><p>No information was sent or stored.</p><button onClick={()=>setSent(false)}>Return to the form</button></div>:<form onSubmit={submit}><label>Name<input name="name" required placeholder="Your name"/></label><label>Email<input name="email" type="email" required placeholder="you@example.com"/></label><label>How can we help?<textarea name="message" required placeholder="Tell us what you would like to improve"/></label><button className="button button-lime" type="submit">Request a consultation <ArrowUpRight size={18}/></button></form>}
-      </section>
-
-      <footer><a className="brand" href="#top"><span className="brand-mark">C</span><span>Cusp <em>Dental Studio</em></span></a><p>Fictional dental practice demo · Bengaluru</p><nav>{nav.map(i=><a key={i} href={`#${i.toLowerCase()}`}>{i}</a>)}</nav><span>Design demo · 2026</span></footer>
-      <a className="whatsapp-float" href="#contact" aria-label="Open the demo contact form"><MessageCircle/></a>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({"@context":"https://schema.org","@type":"Dentist",name:"Cusp Dental Studio",description:"Fictional premium dental clinic portfolio demo",address:{"@type":"PostalAddress",streetAddress:"12 Harbour Lane",addressLocality:"Bengaluru",addressCountry:"IN"},telephone:"+91 00000 00000",priceRange:"₹₹"})}}/>
-    </main>
-  );
+    <section className="visit-section" id="contact"><div className="shell visit-inner"><div><p className="section-label">Your next chapter starts here</p><h2>Let’s talk<br/>about your <span>smile.</span></h2><button className="btn btn-white btn-hero" onClick={() => book()}>Plan your first visit <span className="button-icon"><ArrowUpRight size={19}/></span></button></div><div className="visit-details"><Clock3 size={25}/><h3>Make time for you.</h3><dl><div><dt>Monday – Friday</dt><dd>9 am – 7 pm</dd></div><div><dt>Saturday</dt><dd>9 am – 2 pm</dd></div><div><dt>Sunday</dt><dd>Closed</dd></div></dl><p>{clinic.city}, India<br/><span>Concept practice · Appointment preview</span></p>{clinic.phone && <a className="text-link" href={`tel:${clinic.phone}`}>Call the studio <ArrowUpRight size={16}/></a>}{clinic.whatsapp && <a className="text-link" href={`https://wa.me/${clinic.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Hello, I would like to discuss a consultation at Cusp.")}`}>Chat on WhatsApp <ArrowUpRight size={16}/></a>}{clinic.address && <a className="text-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.address)}`} target="_blank" rel="noreferrer">Get directions <ArrowUpRight size={16}/></a>}</div></div></section></main>
+    <footer className="site-footer shell"><div className="footer-top"><Brand footer/><p>A little more care.<br/>A little more confidence.</p><a className="back-top" href="#top">Back to top <ArrowUpRight size={18}/></a></div><div className="footer-bottom"><span>© 2026 Cusp Dental Studio · Concept website</span><nav aria-label="Footer navigation"><a href="#services">Treatments</a><a href="#pricing">Pricing</a><button onClick={() => setPrivacy(true)}>Privacy & demo details</button></nav></div></footer>
+    <Booking open={bookingOpen} onOpenChange={setBookingOpen} initialTreatment={selected}/>
+    <Dialog open={!!detail} onOpenChange={open => { if (!open) setDetail(null); }}><DialogContent className="cusp-dialog treatment-dialog"><span className="dialog-kicker">Explore your options</span><DialogTitle className="dialog-title">{detail?.title}</DialogTitle><DialogDescription className="dialog-description">{detail?.detail}</DialogDescription><div className="treatment-dialog-price">From {detail && money(detail.price)}<span>Sample price · {detail?.unit}</span></div><h4>At your consultation</h4><ul className="detail-inclusions">{detail?.includes.map(text => <li key={text}><Check size={17}/>{text}</li>)}</ul><p className="fine-print">{detail?.note}</p><button className="btn btn-primary" onClick={() => detail && book(detail.id)}>Explore this appointment <ArrowRight size={17}/></button></DialogContent></Dialog>
+    <Dialog open={privacy} onOpenChange={setPrivacy}><DialogContent className="cusp-dialog"><DialogTitle className="dialog-title">A note about this demo.</DialogTitle><DialogDescription className="dialog-description">Cusp is a fictional dental practice concept. Prices, sample stories and studio imagery are illustrative. The tooth explorer is an educational illustration, not a patient outcome.</DialogDescription><p>Appointment details stay in the current page’s memory and are cleared when you reload. They are not sent to a clinic. Downloading a visit plan saves a file only on your device.</p><p>The website stores your theme preference in your browser. No real clinic phone or address has been configured.</p></DialogContent></Dialog>
+  </>;
 }
